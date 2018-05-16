@@ -219,7 +219,7 @@ class JSprint(cmd.Cmd):
         # Parse args
         args = shlex.split(line)
 
-        if len(args) < 1:
+        if len(args) == 0:
             print("Needs at least an issue number")
             return
 
@@ -241,11 +241,32 @@ class JSprint(cmd.Cmd):
             return
 
         # Get active sprint
-        issue_key = get_issue_key_from_number(args[0])
+        issue_keys = [get_issue_key_from_number(arg) for arg in args]
         sprint = self.get_active_sprint()
 
         # Add issue to sprint
-        self.jira.add_issues_to_sprint(sprint.id, [issue_key])
+        self.jira.add_issues_to_sprint(sprint.id, issue_keys)
+
+    # -----------------------
+    # Move issue into backlog
+    # -----------------------
+    def do_bk(self, line):
+        return self.do_backlog(line)
+
+    @do_exception
+    def do_backlog(self, line):
+        # Parse args
+        args = shlex.split(line)
+
+        if len(args) < 1:
+            print("Needs at least one issue number")
+            return
+
+        # Get active sprint
+        issue_keys = [get_issue_key_from_number(arg) for arg in args]
+
+        # Move issue into backlog
+        self.jira.move_to_backlog(issue_keys)
 
     # ----------------
     # Leave the REPL
