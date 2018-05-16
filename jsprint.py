@@ -151,6 +151,58 @@ class JSprint(cmd.Cmd):
             if i != (len(assignees) - 1):
                 print()
 
+    # --------------------
+    # Assign user to issue
+    # --------------------
+    def do_a(self, line):
+        return self.do_assign(line)
+
+    def do_assign(self, line):
+        # Parse args
+        args = shlex.split(line)
+
+        if len(args) < 2:
+            print("Need two arguments: issue number and assignee name")
+            return
+
+        try:
+            issue_number = int(args[0])
+        except ValueError:
+            print("Issue number is not a number")
+            return
+
+        assignee = args[1]
+
+        # Assign issue
+        issue_key = f"{JIRA_PROJECT}-{issue_number}"
+
+        self.jira.assign_issue(issue_key, assignee)
+
+    # ----------------------
+    # Unassign user to issue
+    # ----------------------
+    def do_u(self, line):
+        return self.do_unassign(line)
+
+    def do_unassign(self, line):
+        # Parse args
+        args = shlex.split(line)
+
+        if len(args) < 1:
+            print("Needs at least an issue number")
+            return
+
+        try:
+            issue_number = int(args[0])
+        except ValueError:
+            print("Issue number is not a number")
+            return
+
+        # unssign issue
+        issue_key = f"{JIRA_PROJECT}-{issue_number}"
+
+        self.jira.assign_issue(issue_key, None)
+
     # -------------------
     # Add issue to sprint
     # -------------------
@@ -159,7 +211,7 @@ class JSprint(cmd.Cmd):
         args = shlex.split(line)
 
         if len(args) == 0:
-            print("Needs at least an issue naumber")
+            print("Needs at least an issue number")
             return
 
         try:
