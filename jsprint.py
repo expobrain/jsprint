@@ -46,6 +46,17 @@ class JSprint(cmd.Cmd):
 
         self.jira = JIRA(options, auth=(username, password))
 
+    def get_active_sprint(self):
+        sprints = self.jira.sprints(settings.get("jira_board_id"), state="active")
+
+        if len(sprints):
+            # Use fisrt active sprint as default
+            sprint = sorted(sprints, key=attrgetter("name"))[0]
+        else:
+            sprint = None
+
+        return sprint
+
     # ----------------
     # Fetch sprints
     # ----------------
@@ -89,13 +100,11 @@ class JSprint(cmd.Cmd):
 
         # Show sprint
         if len(args) == 0:
-            # Use fisrt active sprint as default
-            sprints = self.jira.sprints(settings.get("jira_board_id"), state="active")
+            sprint = self.get_active_sprint()
 
-            if len(sprints) == 0:
+            if sprint is None:
                 print("No active sprint")
             else:
-                sprint = sorted(sprints, key=attrgetter("name"))[0]
                 sprint_id = sprint.id
         else:
             try:
@@ -141,6 +150,31 @@ class JSprint(cmd.Cmd):
 
             if i != (len(assignees) - 1):
                 print()
+
+    # -------------------
+    # Add issue to sprint
+    # -------------------
+    def do_add(self, line):
+        # Parse args
+        args = shlex.split(line)
+
+        if len(args) == 0:
+            print("Needs at least an issue naumber")
+            return
+
+        try:
+            issue_number = int(args[0])
+        except ValueError:
+            print("Issue number is not a number")
+            return
+
+        # Get active sprint
+        sprint = self.get_active_sprint()
+        jira_project = settings.get("jira_project")
+        issue_key = f"{jira_project}-{issue_number}"
+
+        # Add issue to sprint
+        self.jira.add_issues_to_sprint(sprint.id, [issue_key])
 
     # ----------------
     # Leave the REPL
