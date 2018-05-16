@@ -2,6 +2,7 @@
 
 from operator import attrgetter
 from pathlib import Path
+import traceback
 import functools
 import getpass
 import cmd
@@ -30,6 +31,42 @@ settings = {}
 
 with open(Path(__file__).parents[0] / "settings.json") as f:
     settings = json.load(f)
+
+
+class JSprintException(Exception):
+    pass
+
+
+def do_exception(fn):
+
+    def _wrapper(*args, **kwds):
+        try:
+            return fn(*args, **kwds)
+        except JSprintException as e:
+            traceback.print_tb(e.__traceback__)
+            print(Fore.RED + Style.BRIGHT + f"ERROR: {e}" + Style.RESET_ALL)
+            return
+
+    return _wrapper
+
+
+def get_issue_key_from_number(v) -> str:
+    try:
+        issue_number = int(v)
+    except ValueError:
+        raise JSprintException("Issue number is not a number")
+
+    jira_project = settings.get("jira_project")
+    issue_key = f"{jira_project}-{issue_number}"
+
+    return issue_key
+
+
+def get_print_id_from_number(v) -> str:
+    try:
+        return int(v)
+    except ValueError:
+        raise JSprintException("Sprint ID is not a number")
 
 
 class JSprint(cmd.Cmd):
@@ -63,6 +100,7 @@ class JSprint(cmd.Cmd):
     def do_sps(self, line):
         return self.do_sprints(line)
 
+    @do_exception
     def do_sprints(self, line):
         actives = self.jira.sprints(settings.get("jira_board_id"), state="active")
         futures = self.jira.sprints(settings.get("jira_board_id"), state="future")
@@ -86,6 +124,7 @@ class JSprint(cmd.Cmd):
     def do_sp(self, line):
         return self.do_sprint(line)
 
+    @do_exception
     def do_sprint(self, line):
 
         def group_by_assignee(acc, issue):
@@ -104,16 +143,13 @@ class JSprint(cmd.Cmd):
 
             if sprint is None:
                 print("No active sprint")
+                return
             else:
                 sprint_id = sprint.id
-        else:
-            try:
-                sprint_id = int(args[0])
-            except ValueError:
-                print("Sprint ID must be an integer")
-                return
 
-        print(f"Displaying sprint {sprint.name}")
+            print(f"Displaying sprint {sprint.name}")
+        else:
+            sprint_id = get_print_id_from_number(args[0])
 
         # Show issue by assignee
         jql = f"""
@@ -157,6 +193,7 @@ class JSprint(cmd.Cmd):
     def do_a(self, line):
         return self.do_assign(line)
 
+    @do_exception
     def do_assign(self, line):
         # Parse args
         args = shlex.split(line)
@@ -165,16 +202,9 @@ class JSprint(cmd.Cmd):
             print("Need two arguments: issue number and assignee name")
             return
 
-        try:
-            issue_number = int(args[0])
-        except ValueError:
-            print("Issue number is not a number")
-            return
-
-        assignee = args[1]
-
         # Assign issue
-        issue_key = f"{JIRA_PROJECT}-{issue_number}"
+        issue_key = get_issue_key_from_number(args[0])
+        assignee = args[1]
 
         self.jira.assign_issue(issue_key, assignee)
 
@@ -184,6 +214,7 @@ class JSprint(cmd.Cmd):
     def do_u(self, line):
         return self.do_unassign(line)
 
+    @do_exception
     def do_unassign(self, line):
         # Parse args
         args = shlex.split(line)
@@ -192,20 +223,15 @@ class JSprint(cmd.Cmd):
             print("Needs at least an issue number")
             return
 
-        try:
-            issue_number = int(args[0])
-        except ValueError:
-            print("Issue number is not a number")
-            return
-
-        # unssign issue
-        issue_key = f"{JIRA_PROJECT}-{issue_number}"
+        # Unassign issue
+        issue_key = get_issue_key_from_number(args[0])
 
         self.jira.assign_issue(issue_key, None)
 
     # -------------------
     # Add issue to sprint
     # -------------------
+    @do_exception
     def do_add(self, line):
         # Parse args
         args = shlex.split(line)
@@ -214,16 +240,9 @@ class JSprint(cmd.Cmd):
             print("Needs at least an issue number")
             return
 
-        try:
-            issue_number = int(args[0])
-        except ValueError:
-            print("Issue number is not a number")
-            return
-
         # Get active sprint
+        issue_key = get_issue_key_from_number(args[0])
         sprint = self.get_active_sprint()
-        jira_project = settings.get("jira_project")
-        issue_key = f"{jira_project}-{issue_number}"
 
         # Add issue to sprint
         self.jira.add_issues_to_sprint(sprint.id, [issue_key])
