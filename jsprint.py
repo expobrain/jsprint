@@ -10,8 +10,11 @@ import shlex
 import json
 
 from colorama import Fore, Style, init, deinit
-from jira import JIRA
+from jira import JIRA, Issue
 
+# Fields map:
+# - customfield_11360 -> Up in build
+# - customfield_11261 -> Sprint
 
 UNASSIGNED = "<unassigned>"
 ISSUE_STATUS_COLOR = {
@@ -67,6 +70,24 @@ def get_print_id_from_number(v) -> str:
         return int(v)
     except ValueError:
         raise JSprintException("Sprint ID is not a number")
+
+
+def get_assignee_from_issue(issue: Issue):
+    return issue.fields.assignee.displayName if issue.fields.assignee else UNASSIGNED
+
+
+def get_up_in_build_form_issue(issue: Issue) -> str:
+    field = issue.fields.customfield_11360
+
+    return field[0].value if field and len(field) else ""
+
+
+def colored_status(issue: Issue, padding: int = 0) -> str:
+    status = issue.fields.status.name
+    status_color = ISSUE_STATUS_COLOR.get(status, "")
+    styled_status = Style.BRIGHT + status_color + status.ljust(padding) + Style.RESET_ALL
+
+    return styled_status
 
 
 class JSprint(cmd.Cmd):
@@ -128,7 +149,7 @@ class JSprint(cmd.Cmd):
     def do_sprint(self, line):
 
         def group_by_assignee(acc, issue):
-            assignee = issue.fields.assignee.displayName if issue.fields.assignee else UNASSIGNED
+            assignee = get_assignee_from_issue(issue)
 
             acc.setdefault(assignee, []).append(issue)
 
@@ -175,11 +196,7 @@ class JSprint(cmd.Cmd):
 
             for issue in user_issues:
                 url = issue.permalink().ljust(parmalink_padding)
-                status = issue.fields.status.name
-                status_color = ISSUE_STATUS_COLOR.get(status, "")
-                status = Style.BRIGHT + status_color + status.ljust(
-                    status_padding
-                ) + Style.RESET_ALL
+                status = colored_status(issue, status_padding)
                 summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
 
                 print(f"{status} - {url} {summary}")
@@ -246,6 +263,33 @@ class JSprint(cmd.Cmd):
 
         # Add issue to sprint
         self.jira.add_issues_to_sprint(sprint.id, issue_keys)
+
+    # ----------------
+    # Show issue stats
+    # ----------------
+    def do_sh(self, line):
+        return self.do_show(line)
+
+    @do_exception
+    def do_show(self, line):
+        # Parse args
+        args = shlex.split(line)
+
+        if len(args) < 1:
+            print("Needs at least one issue number")
+            return
+
+        # Show issue stats
+        issue_key = get_issue_key_from_number(args[0])
+        issue = self.jira.issue(issue_key, "assignee,status,summary,customfield_11360")
+        status = colored_status(issue)
+        up_in_build = get_up_in_build_form_issue(issue)
+
+        print(f"Issue       : {Style.BRIGHT + issue.key + Style.RESET_ALL} ({issue.permalink()})")
+        print(f"Status      : {Style.BRIGHT + status + Style.RESET_ALL}")
+        print(f"Assignee    : {Style.BRIGHT + get_assignee_from_issue(issue) + Style.RESET_ALL}")
+        print(f"Up in build : {Style.BRIGHT + up_in_build + Style.RESET_ALL}")
+        print(f"Summary     : {Style.BRIGHT + issue.fields.summary + Style.RESET_ALL}")
 
     # -----------------------
     # Move issue into backlog
