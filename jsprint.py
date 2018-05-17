@@ -215,8 +215,18 @@ class JSprint(cmd.Cmd):
     # --------------------
     # Assign user to issue
     # --------------------
-    def do_a(self, line):
-        return self.do_assign(line)
+    def complete_a(self, *args):
+        return self.complete_assign(*args)
+
+    def do_a(self, *args):
+        return self.do_assign(*args)
+
+    @do_exception
+    def complete_assign(self, text, line, begin_index, end_index):
+        s = text.lower()
+        matches = filter(lambda x: x.startswith(s), settings.get("team_members"))
+
+        return list(matches)
 
     @do_exception
     def do_assign(self, line):
