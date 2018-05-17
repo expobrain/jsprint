@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from typing import List
 from operator import attrgetter
 from pathlib import Path
 import traceback
@@ -11,6 +12,7 @@ import json
 
 from colorama import Fore, Style, init, deinit
 from jira import JIRA, Issue
+from jira.client import Sprint
 
 # Fields map:
 # - customfield_11360 -> Up in build
@@ -45,7 +47,7 @@ def do_exception(fn):
     def _wrapper(*args, **kwds):
         try:
             return fn(*args, **kwds)
-        except JSprintException as e:
+        except Exception as e:
             traceback.print_tb(e.__traceback__)
             print(Fore.RED + Style.BRIGHT + f"ERROR: {e}" + Style.RESET_ALL)
             return
@@ -65,14 +67,14 @@ def get_issue_key_from_number(v) -> str:
     return issue_key
 
 
-def get_print_id_from_number(v) -> str:
+def get_sprint_id_from_number(v) -> str:
     try:
         return int(v)
     except ValueError:
         raise JSprintException("Sprint ID is not a number")
 
 
-def get_assignee_from_issue(issue: Issue):
+def get_assignee_from_issue(issue: Issue) -> str:
     return issue.fields.assignee.displayName if issue.fields.assignee else UNASSIGNED
 
 
@@ -104,8 +106,11 @@ class JSprint(cmd.Cmd):
 
         self.jira = JIRA(options, auth=(username, password))
 
-    def get_active_sprint(self):
-        sprints = self.jira.sprints(settings.get("jira_board_id"), state="active")
+    def get_sprints(self, state: str = "active") -> List[Sprint]:
+        return self.jira.sprints(settings.get("jira_board_id"), state=state)
+
+    def get_active_sprint(self) -> Sprint:
+        sprints = self.get_sprints(state="active")
 
         if len(sprints):
             # Use fisrt active sprint as default
@@ -123,8 +128,8 @@ class JSprint(cmd.Cmd):
 
     @do_exception
     def do_sprints(self, line):
-        actives = self.jira.sprints(settings.get("jira_board_id"), state="active")
-        futures = self.jira.sprints(settings.get("jira_board_id"), state="future")
+        actives = self.get_sprints(state="active")
+        futures = self.get_sprints(state="future")
 
         sprints = futures + actives
         sprints = sorted(sprints, key=attrgetter("name"))
@@ -170,7 +175,7 @@ class JSprint(cmd.Cmd):
 
             print(f"Displaying sprint {sprint.name}")
         else:
-            sprint_id = get_print_id_from_number(args[0])
+            sprint_id = get_sprint_id_from_number(args[0])
 
         # Show issue by assignee
         jql = f"""
@@ -182,8 +187,11 @@ class JSprint(cmd.Cmd):
 
         issues = self.jira.search_issues(jql)
 
-        parmalink_padding = max(len(i.permalink()) for i in issues)
-        status_padding = max(len(i.fields.status.name) for i in issues)
+        if len(issues):
+            permalink_padding = max(len(i.permalink()) for i in issues)
+            status_padding = max(len(i.fields.status.name) for i in issues)
+        else:
+            permalink_padding = status_padding = 0
 
         issues_by_user = functools.reduce(group_by_assignee, issues, {})
         assignees = sorted(issues_by_user.keys())
@@ -195,7 +203,7 @@ class JSprint(cmd.Cmd):
             print(Style.BRIGHT + f"{assignee}:" + Style.RESET_ALL)
 
             for issue in user_issues:
-                url = issue.permalink().ljust(parmalink_padding)
+                url = issue.permalink().ljust(permalink_padding)
                 status = colored_status(issue, status_padding)
                 summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
 
@@ -263,6 +271,27 @@ class JSprint(cmd.Cmd):
 
         # Add issue to sprint
         self.jira.add_issues_to_sprint(sprint.id, issue_keys)
+
+    # -----------------------------
+    # Move or add issue to a sprint
+    # -----------------------------
+    def do_mv(self, line):
+        return self.do_move(line)
+
+    @do_exception
+    def do_move(self, line):
+        # Parse args
+        args = shlex.split(line)
+
+        if len(args) < 2:
+            print("Needs a sprint number and at least one issue number")
+            return
+
+        # Move issues
+        sprint_id = get_sprint_id_from_number(args[0])
+        issue_keys = [get_issue_key_from_number(arg) for arg in args]
+
+        self.jira.add_issues_to_sprint(sprint_id, issue_keys)
 
     # ----------------
     # Show issue stats
