@@ -118,6 +118,12 @@ class JSprint(cmd.Cmd):
         self.jira = JIRA(options, auth=(username, password))
 
     @property
+    def prompt(self):
+        sprint = Style.BRIGHT + self.current_sprint.name + Style.RESET_ALL
+
+        return f"JSprint [{sprint}] >>> "
+
+    @property
     def current_sprint(self):
         if self.__current_sprint is None:
             self.__current_sprint = self.get_active_sprint()
