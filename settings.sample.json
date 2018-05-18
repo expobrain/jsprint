@@ -1,0 +1,9 @@
+{
+  "jira_url": "https://jira.example.com/",
+  "jira_username": "username",
+  "jira_password": "password",
+  "jira_project": "PROJ",
+  "jira_board_id": 123,
+  "team_members": ["john.smith", "barry.allen"],
+  "team_labels": ["frontend", "backend", "design"]
+}
