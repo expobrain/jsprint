@@ -84,7 +84,7 @@ def get_up_in_build_form_issue(issue: Issue) -> str:
     return field[0].value if field and len(field) else ""
 
 
-def colored_status(issue: Issue, padding: int = 0) -> str:
+def colored_issue_status(issue: Issue, padding: int = 0) -> str:
     status = issue.fields.status.name
     status_color = ISSUE_STATUS_COLOR.get(status, "")
     styled_status = Style.BRIGHT + status_color + status.ljust(padding) + Style.RESET_ALL
@@ -92,9 +92,20 @@ def colored_status(issue: Issue, padding: int = 0) -> str:
     return styled_status
 
 
+def colored_sprint_state(sprint: Sprint) -> str:
+    return (
+        Style.BRIGHT
+        + (Fore.YELLOW if sprint.state == "future" else Fore.GREEN)
+        + sprint.state
+        + Style.RESET_ALL
+    )
+
+
 class JSprint(cmd.Cmd):
 
     jira = None
+
+    __current_sprint = None
 
     def __init__(self):
         super().__init__()
@@ -105,6 +116,17 @@ class JSprint(cmd.Cmd):
         options = {"server": settings.get("jira_url"), "agile_rest_path": "agile"}
 
         self.jira = JIRA(options, auth=(username, password))
+
+    @property
+    def current_sprint(self):
+        if self.__current_sprint is None:
+            self.__current_sprint = self.get_active_sprint()
+
+        return self.__current_sprint
+
+    @current_sprint.setter
+    def current_sprint(self, value):
+        self.__current_sprint = value
 
     def get_sprints(self, state: str = "active") -> List[Sprint]:
         return self.jira.sprints(settings.get("jira_board_id"), state=state)
@@ -119,6 +141,29 @@ class JSprint(cmd.Cmd):
             sprint = None
 
         return sprint
+
+    # ------------------
+    # Set current sprint
+    # ------------------
+    @do_exception
+    def do_use(self, line):
+        # Parse arguments
+        args = shlex.split(line)
+
+        # Select sprint
+        if len(args) == 0:
+            sprint = self.get_active_sprint()
+
+            if sprint is None:
+                print("No active sprint")
+                return
+        else:
+            sprint_id = get_sprint_id_from_number(args[0])
+            sprint = self.jira.sprint(sprint_id)
+
+        print(f"Using sprint {Style.BRIGHT + sprint.name + Style.RESET_ALL} ({sprint.id})")
+
+        self.current_sprint = sprint
 
     # ----------------
     # Fetch sprints
@@ -137,13 +182,7 @@ class JSprint(cmd.Cmd):
         for sprint in sprints:
             name = sprint.name
             id_ = Style.BRIGHT + str(sprint.id) + Style.RESET_ALL
-            state = (
-                Style.BRIGHT
-                + (Fore.YELLOW if sprint.state == "future" else Fore.GREEN)
-                + ("*" if sprint.state == "active" else " ")
-                + sprint.state
-                + Style.RESET_ALL
-            )
+            state = (("*" if sprint.state == "active" else " ") + colored_sprint_state(sprint))
 
             print(f"{state} {name} ({id_})")
 
@@ -165,24 +204,19 @@ class JSprint(cmd.Cmd):
 
         # Show sprint
         if len(args) == 0:
-            sprint = self.get_active_sprint()
-
-            if sprint is None:
-                print("No active sprint")
-                return
-            else:
-                sprint_id = sprint.id
-
-            print(f"Displaying sprint {sprint.name}")
+            sprint = self.current_sprint
         else:
             sprint_id = get_sprint_id_from_number(args[0])
+            sprint = self.jira.sprint(sprint_id)
+
+        print(f"Displaying sprint {sprint.name}")
 
         # Show issue by assignee
         jql = f"""
-            project = '{settings.get('jira_project')}' AND
-            sprint = {sprint_id} AND
-            (assignee IS NULL or assignee IN {tuple(settings.get('team_members'))}) AND
-            (labels IS NULL or labels IN {tuple(settings.get('team_labels'))})
+            project = '{settings.get("jira_project")}' AND
+            sprint = {sprint.id} AND
+            (assignee IS NULL or assignee IN {tuple(settings.get("team_members"))}) AND
+            (labels IS NULL or labels IN {tuple(settings.get("team_labels"))})
         """
 
         issues = self.jira.search_issues(jql)
@@ -206,7 +240,7 @@ class JSprint(cmd.Cmd):
             for issue in user_issues:
                 issue_key = Style.BRIGHT + issue.key.ljust(issue_key_padding) + Style.RESET_ALL
                 url = issue.permalink().ljust(permalink_padding)
-                status = colored_status(issue, status_padding)
+                status = colored_issue_status(issue, status_padding)
                 summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
 
                 print(f"{status} - {issue_key} ({url}) {summary}")
@@ -265,9 +299,9 @@ class JSprint(cmd.Cmd):
 
         self.jira.assign_issue(issue_key, None)
 
-    # -------------------
-    # Add issue to sprint
-    # -------------------
+    # ---------------------------
+    # Add issue to current sprint
+    # ---------------------------
     @do_exception
     def do_add(self, line):
         # Parse args
@@ -277,11 +311,10 @@ class JSprint(cmd.Cmd):
             print("Needs at least an issue number")
             return
 
-        # Get active sprint
-        issue_keys = [get_issue_key_from_number(arg) for arg in args]
-        sprint = self.get_active_sprint()
-
         # Add issue to sprint
+        issue_keys = [get_issue_key_from_number(arg) for arg in args]
+        sprint = self.current_sprint
+
         self.jira.add_issues_to_sprint(sprint.id, issue_keys)
 
     # -----------------------------
@@ -323,7 +356,7 @@ class JSprint(cmd.Cmd):
         # Show issue stats
         issue_key = get_issue_key_from_number(args[0])
         issue = self.jira.issue(issue_key, "assignee,status,summary,customfield_11360")
-        status = colored_status(issue)
+        status = colored_issue_status(issue)
         up_in_build = get_up_in_build_form_issue(issue)
 
         print(f"Issue       : {Style.BRIGHT + issue.key + Style.RESET_ALL} ({issue.permalink()})")
