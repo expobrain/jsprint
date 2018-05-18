@@ -190,8 +190,9 @@ class JSprint(cmd.Cmd):
         if len(issues):
             permalink_padding = max(len(i.permalink()) for i in issues)
             status_padding = max(len(i.fields.status.name) for i in issues)
+            issue_key_padding = max(len(i.key) for i in issues)
         else:
-            permalink_padding = status_padding = 0
+            permalink_padding = status_padding = issue_key_padding = 0
 
         issues_by_user = functools.reduce(group_by_assignee, issues, {})
         assignees = sorted(issues_by_user.keys())
@@ -203,11 +204,12 @@ class JSprint(cmd.Cmd):
             print(Style.BRIGHT + f"{assignee}:" + Style.RESET_ALL)
 
             for issue in user_issues:
+                issue_key = Style.BRIGHT + issue.key.ljust(issue_key_padding) + Style.RESET_ALL
                 url = issue.permalink().ljust(permalink_padding)
                 status = colored_status(issue, status_padding)
                 summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
 
-                print(f"{status} - {url} {summary}")
+                print(f"{status} - {issue_key} ({url}) {summary}")
 
             if i != (len(assignees) - 1):
                 print()
