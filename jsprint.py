@@ -218,12 +218,17 @@ class JSprint(cmd.Cmd):
         print(f"Displaying sprint {sprint.name}")
 
         # Show issue by assignee
-        jql = f"""
-            project = '{settings.get("jira_project")}' AND
-            sprint = {sprint.id} AND
-            (assignee IS NULL or assignee IN {tuple(settings.get("team_members"))}) AND
-            (labels IS NULL or labels IN {tuple(settings.get("team_labels"))})
-        """
+        jira_project = settings.get("jira_project")
+        team_members = settings.get("team_members")
+        team_labels = settings.get("team_labels")
+
+        jql = f"project = '{jira_project}' AND sprint = {sprint.id}"
+
+        if team_members:
+            jql += f" AND (assignee IS NULL or assignee IN {tuple(team_members)})"
+
+        if team_labels:
+            jql += f" AND (labels IS NULL or labels IN {tuple(team_labels)})"
 
         issues = self.jira.search_issues(jql)
 
