@@ -262,6 +262,72 @@ class JSprint(cmd.Cmd):
             if i != (len(assignees) - 1):
                 print()
 
+    # ---------------------
+    # Show sprint as report
+    # ---------------------
+    def do_rp(self, line):
+        return self.do_report(line)
+
+    @do_exception
+    def do_report(self, line):
+
+        def group_by_assignee(acc, issue):
+            assignee = get_assignee_from_issue(issue)
+
+            acc.setdefault(assignee, []).append(issue)
+
+            return acc
+
+        # Parse arguments
+        args = shlex.split(line)
+
+        # Show sprint
+        if len(args) == 0:
+            sprint = self.current_sprint
+        else:
+            sprint_id = get_sprint_id_from_number(args[0])
+            sprint = self.jira.sprint(sprint_id)
+
+        print(f"Displaying sprint {sprint.name}")
+
+        # Show issue by assignee
+        jira_project = settings.get("jira_project")
+        team_members = settings.get("team_members")
+        team_labels = settings.get("team_labels")
+
+        jql = f"project = '{jira_project}' AND sprint = {sprint.id}"
+
+        if team_members:
+            jql += f" AND (assignee IS NULL or assignee IN {tuple(team_members)})"
+
+        if team_labels:
+            jql += f" AND (labels IS NULL or labels IN {tuple(team_labels)})"
+
+        issues = self.jira.search_issues(jql)
+
+        if len(issues):
+            permalink_padding = max(len(i.permalink()) for i in issues)
+        else:
+            permalink_padding = 0
+
+        issues_by_user = functools.reduce(group_by_assignee, issues, {})
+        assignees = sorted(issues_by_user.keys())
+
+        for i, assignee in enumerate(assignees):
+            user_issues = issues_by_user[assignee]
+            user_issues = sorted(user_issues, key=attrgetter("id"))
+
+            print(Style.BRIGHT + f"{assignee}:" + Style.RESET_ALL)
+
+            for issue in user_issues:
+                url = issue.permalink().ljust(permalink_padding)
+                summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
+
+                print(f"- {url} {summary}")
+
+            if i != (len(assignees) - 1):
+                print()
+
     # --------------------
     # Assign user to issue
     # --------------------
