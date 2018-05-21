@@ -171,9 +171,9 @@ class JSprint(cmd.Cmd):
 
         self.current_sprint = sprint
 
-    # ----------------
-    # Fetch sprints
-    # ----------------
+    # ------------
+    # Show sprints
+    # ------------
     def do_sps(self, line):
         return self.do_sprints(line)
 
@@ -192,6 +192,9 @@ class JSprint(cmd.Cmd):
 
             print(f"{state} {name} ({id_})")
 
+    # -----------
+    # Show sprint
+    # -----------
     def do_sp(self, line):
         return self.do_sprint(line)
 
@@ -244,7 +247,7 @@ class JSprint(cmd.Cmd):
 
         for i, assignee in enumerate(assignees):
             user_issues = issues_by_user[assignee]
-            user_issues = sorted(user_issues, key=attrgetter("fields.status.name"))
+            user_issues = sorted(user_issues, key=attrgetter("id"))
 
             print(Style.BRIGHT + f"{assignee}:" + Style.RESET_ALL)
 
