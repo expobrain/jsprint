@@ -9,6 +9,7 @@ import getpass
 import cmd
 import shlex
 import json
+import textwrap
 
 from colorama import Fore, Style, init, deinit
 from jira import JIRA, Issue
@@ -40,6 +41,10 @@ with open(Path(__file__).parents[0] / "settings.json") as f:
 
 class JSprintException(Exception):
     pass
+
+
+def print_help(s: str):
+    print(textwrap.dedent(s))
 
 
 def do_exception(fn):
@@ -151,6 +156,16 @@ class JSprint(cmd.Cmd):
     # ------------------
     # Set current sprint
     # ------------------
+    def help_use(self):
+        print_help(
+            """
+            use [sprint_id]
+
+            Set the current sprint.
+            If no `sprint_id` is passed the current active sprint will be used.
+            """
+        )
+
     @do_exception
     def do_use(self, line):
         # Parse arguments
@@ -174,6 +189,9 @@ class JSprint(cmd.Cmd):
     # ------------
     # Show sprints
     # ------------
+    def help_sprints(self):
+        print_help("List all the active and future sprints")
+
     def do_sps(self, line):
         return self.do_sprints(line)
 
@@ -195,6 +213,16 @@ class JSprint(cmd.Cmd):
     # -----------
     # Show sprint
     # -----------
+    def help_sprint(self):
+        print_help(
+            """
+            sprint [sprint_id]
+
+            Show the issues in the sprint grouped by assignee.
+            If no `sprint_id` is given use the current selected sprint.
+            """
+        )
+
     def do_sp(self, line):
         return self.do_sprint(line)
 
@@ -265,6 +293,18 @@ class JSprint(cmd.Cmd):
     # ---------------------
     # Show sprint as report
     # ---------------------
+    def help_report(self):
+        print_help(
+            """
+            sprint [sprint_id]
+
+            Show the issues in the sprint grouped by user for reporting.
+            If no `sprint_id` is given use the current selected sprint.
+            The difference with the `sprint` command is that the grouping by user is
+            done by whom actually worked on the issue instead of just the assignee.
+            """
+        )
+
     def do_rp(self, line):
         return self.do_report(line)
 
@@ -331,6 +371,15 @@ class JSprint(cmd.Cmd):
     # --------------------
     # Assign user to issue
     # --------------------
+    def help_assign(self):
+        print_help(
+            """
+            assign <issue_number> <assignee>
+
+            Assign the issue to an user.
+            """
+        )
+
     def complete_a(self, *args):
         return self.complete_assign(*args)
 
@@ -362,6 +411,15 @@ class JSprint(cmd.Cmd):
     # ----------------------
     # Unassign user to issue
     # ----------------------
+    def help_unassign(self):
+        print_help(
+            """
+            unassign <issue_number>
+
+            Remove assignee from the given issue.
+            """
+        )
+
     def do_u(self, line):
         return self.do_unassign(line)
 
@@ -382,6 +440,15 @@ class JSprint(cmd.Cmd):
     # ---------------------------
     # Add issue to current sprint
     # ---------------------------
+    def help_add(self):
+        print_help(
+            """
+            add <issue_number>
+
+            Add issue to the current sprint.
+            """
+        )
+
     @do_exception
     def do_add(self, line):
         # Parse args
@@ -400,6 +467,15 @@ class JSprint(cmd.Cmd):
     # -----------------------------
     # Move or add issue to a sprint
     # -----------------------------
+    def help_move(self):
+        print_help(
+            """
+            move <sprint_id> <issue_number>
+
+            Move an issue into a sprint.
+            """
+        )
+
     def do_mv(self, line):
         return self.do_move(line)
 
@@ -409,7 +485,7 @@ class JSprint(cmd.Cmd):
         args = shlex.split(line)
 
         if len(args) < 2:
-            print("Needs a sprint number and at least one issue number")
+            print("Needs a sprint ID and at least one issue number")
             return
 
         # Move issues
@@ -418,9 +494,18 @@ class JSprint(cmd.Cmd):
 
         self.jira.add_issues_to_sprint(sprint_id, issue_keys)
 
-    # ----------------
-    # Show issue stats
-    # ----------------
+    # ---------------
+    # Show issue info
+    # ---------------
+    def help_show(self):
+        print_help(
+            """
+            show <issue_number>
+
+            Show informations about the given issue number
+            """
+        )
+
     def do_sh(self, line):
         return self.do_show(line)
 
@@ -448,6 +533,15 @@ class JSprint(cmd.Cmd):
     # -----------------------
     # Move issue into backlog
     # -----------------------
+    def help_backlog(self):
+        print_help(
+            """
+            backlog <issue_number>
+
+            Move an issue out of the sprint and back into backlog.
+            """
+        )
+
     def do_bk(self, line):
         return self.do_backlog(line)
 
