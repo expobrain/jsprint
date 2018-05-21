@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List
+from typing import List, Iterable, Dict
 from operator import attrgetter
 from pathlib import Path
 import traceback
@@ -12,12 +12,13 @@ import json
 import textwrap
 
 from colorama import Fore, Style, init, deinit
-from jira import JIRA, Issue
+from jira import JIRA, Issue, User
 from jira.client import Sprint
 
 # Fields map:
 # - customfield_11360 -> Up in build
 # - customfield_11261 -> Sprint
+# - customfield_12664 -> Developers
 
 UNASSIGNED = "<unassigned>"
 ISSUE_STATUS_COLOR = {
@@ -81,6 +82,13 @@ def get_sprint_id_from_number(v) -> str:
 
 def get_assignee_from_issue(issue: Issue) -> str:
     return issue.fields.assignee.displayName if issue.fields.assignee else UNASSIGNED
+
+
+def get_developers_from_issue(issue: Issue) -> Iterable[User]:
+    try:
+        return issue.fields.customfield_12664 or ()
+    except KeyError:
+        return ()
 
 
 def get_up_in_build_form_issue(issue: Issue) -> str:
@@ -229,7 +237,7 @@ class JSprint(cmd.Cmd):
     @do_exception
     def do_sprint(self, line):
 
-        def group_by_assignee(acc, issue):
+        def group_by_assignee(acc, issue: Issue) -> Dict[str, Iterable[Issue]]:
             assignee = get_assignee_from_issue(issue)
 
             acc.setdefault(assignee, []).append(issue)
@@ -311,12 +319,22 @@ class JSprint(cmd.Cmd):
     @do_exception
     def do_report(self, line):
 
-        def group_by_assignee(acc, issue):
-            assignee = get_assignee_from_issue(issue)
+        def group_by_developers(acc, issue: Issue) -> Dict[str, Iterable[Issue]]:
+            developers = get_developers_from_issue(issue)
 
-            acc.setdefault(assignee, []).append(issue)
+            for developer in developers:
+                acc.setdefault(developer.displayName, []).append(issue)
 
             return acc
+
+        def is_developer_in_team(team_members: List[str], issue: Issue) -> bool:
+            developers = get_developers_from_issue(issue)
+
+            for developer in developers:
+                if developer.name in team_members:
+                    return True
+
+            return False
 
         # Parse arguments
         args = shlex.split(line)
@@ -330,42 +348,31 @@ class JSprint(cmd.Cmd):
 
         print(f"Displaying sprint {sprint.name}")
 
-        # Show issue by assignee
+        # Show issue by developers
         jira_project = settings.get("jira_project")
         team_members = settings.get("team_members")
-        team_labels = settings.get("team_labels")
 
         jql = f"project = '{jira_project}' AND sprint = {sprint.id}"
 
-        if team_members:
-            jql += f" AND (assignee IS NULL or assignee IN {tuple(team_members)})"
-
-        if team_labels:
-            jql += f" AND (labels IS NULL or labels IN {tuple(team_labels)})"
-
         issues = self.jira.search_issues(jql)
+        issues = (i for i in issues if is_developer_in_team(team_members, i))
 
-        if len(issues):
-            permalink_padding = max(len(i.permalink()) for i in issues)
-        else:
-            permalink_padding = 0
+        issues_by_developer = functools.reduce(group_by_developers, issues, {})
+        developers = sorted(set(issues_by_developer.keys()))
 
-        issues_by_user = functools.reduce(group_by_assignee, issues, {})
-        assignees = sorted(issues_by_user.keys())
+        for i, developer in enumerate(developers):
+            developer_issues = issues_by_developer[developer]
+            developer_issues = sorted(developer_issues, key=attrgetter("id"))
 
-        for i, assignee in enumerate(assignees):
-            user_issues = issues_by_user[assignee]
-            user_issues = sorted(user_issues, key=attrgetter("id"))
+            print(Style.BRIGHT + f"{developer}:" + Style.RESET_ALL)
 
-            print(Style.BRIGHT + f"{assignee}:" + Style.RESET_ALL)
-
-            for issue in user_issues:
-                url = issue.permalink().ljust(permalink_padding)
+            for issue in developer_issues:
+                url = issue.permalink()
                 summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
 
                 print(f"- {url} {summary}")
 
-            if i != (len(assignees) - 1):
+            if i != (len(developers) - 1):
                 print()
 
     # --------------------
