@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List, Iterable, Dict
+from typing import List, Iterable, Dict, Optional
 from operator import attrgetter
 from pathlib import Path
 import traceback
@@ -147,7 +147,7 @@ class JSprint(cmd.Cmd):
     def current_sprint(self, value):
         self.__current_sprint = value
 
-    def get_sprints(self, state: str = "active") -> List[Sprint]:
+    def get_sprints(self, state: Optional[str] = None) -> List[Sprint]:
         return self.jira.sprints(settings.get("jira_board_id"), state=state)
 
     def get_active_sprint(self) -> Sprint:
@@ -173,6 +173,17 @@ class JSprint(cmd.Cmd):
             If no `sprint_id` is passed the current active sprint will be used.
             """
         )
+
+    # def complete_u(self, *args):
+    #     return self.complete_use(*args)
+
+    # @do_exception
+    # def complete_use(self, text, line, begin_index, end_index):
+    #     s = line[line.index(" ")+1:begin_index].lower()
+    #     sprint_names = (sprint.name for sprint in self.get_sprints())
+    #     matches = (name for name in sprint_names if name.lower().startswith(s))
+
+    #     return list(matches)
 
     @do_exception
     def do_use(self, line):
