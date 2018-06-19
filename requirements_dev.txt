@@ -1,0 +1,2 @@
+-e requirements.txt
+black>=18.6b2

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Prettify all staged files
+py_files=$(git diff --cached --name-only --diff-filter=ACM "*.py" | tr '\n' ' ')
+
+if [ -n "$py_files" ] ; then
+  echo "$py_files" | xargs black -l99
+  echo "$py_files" | xargs git add
+fi
+
+exit 0

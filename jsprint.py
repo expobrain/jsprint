@@ -49,7 +49,6 @@ def print_help(s: str):
 
 
 def do_exception(fn):
-
     def _wrapper(*args, **kwds):
         try:
             return fn(*args, **kwds)
@@ -214,7 +213,7 @@ class JSprint(cmd.Cmd):
         for sprint in sprints:
             name = sprint.name
             id_ = Style.BRIGHT + str(sprint.id) + Style.RESET_ALL
-            state = (("*" if sprint.state == "active" else " ") + colored_sprint_state(sprint))
+            state = ("*" if sprint.state == "active" else " ") + colored_sprint_state(sprint)
 
             print(f"{state} {name} ({id_})")
 
@@ -236,7 +235,6 @@ class JSprint(cmd.Cmd):
 
     @do_exception
     def do_sprint(self, line):
-
         def group_by_assignee(acc, issue: Issue) -> Dict[str, Iterable[Issue]]:
             assignee = get_assignee_from_issue(issue)
 
@@ -318,7 +316,6 @@ class JSprint(cmd.Cmd):
 
     @do_exception
     def do_report(self, line):
-
         def group_by_developers(acc, issue: Issue) -> Dict[str, Iterable[Issue]]:
             developers = get_developers_from_issue(issue)
 
