@@ -1,2 +1,2 @@
 colorama==0.3.9
-jira===1.0.15
+git+https://github.com/pycontribs/jira.git#206f62b490d792a9c4a10680489ef9f7bc10cb3f
