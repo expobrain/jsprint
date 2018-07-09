@@ -19,6 +19,7 @@ from jira.client import Sprint
 # - customfield_11360 -> Up in build
 # - customfield_11261 -> Sprint
 # - customfield_12664 -> Developers
+# - customfield_14560 -> Rank
 
 UNASSIGNED = "<unassigned>"
 ISSUE_STATUS_COLOR = {
@@ -400,11 +401,7 @@ class JSprint(cmd.Cmd):
         team_members = settings.get("team_members")
         team_labels = settings.get("team_labels")
 
-        jql = (
-            f"project = '{jira_project}' "
-            f"AND sprint = {sprint.id} "
-            'AND resolution = "Unresolved"'
-        )
+        jql = f"project = '{jira_project}' AND sprint = {sprint.id} AND resolution = 'Unresolved'"
 
         if team_members:
             jql += f" AND (assignee IS NULL or assignee IN {tuple(team_members)})"
@@ -416,17 +413,20 @@ class JSprint(cmd.Cmd):
         issues_by_user = functools.reduce(group_by_assignee, issues, {})
         assignees = sorted(issues_by_user.keys())
 
+        status_padding = max(len(i.fields.status.name) for i in issues) if len(issues) else 0
+
         for i, assignee in enumerate(assignees):
             user_issues = issues_by_user[assignee]
-            user_issues = sorted(user_issues, key=attrgetter("id"))
+            user_issues = sorted(user_issues, key=attrgetter("fields.customfield_14560"))
 
             print(Style.BRIGHT + f"{assignee}:" + Style.RESET_ALL)
 
             for issue in user_issues:
                 url = issue.permalink()
+                status = colored_issue_status(issue, status_padding)
                 summary = Style.BRIGHT + issue.fields.summary + Style.RESET_ALL
 
-                print(f"- {url} {summary}")
+                print(f"- {url} ({status}) {summary}")
 
             if i != (len(assignees) - 1):
                 print()
