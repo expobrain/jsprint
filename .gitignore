@@ -108,3 +108,6 @@ venv.bak/
 
 # Local settings
 /settings*.json
+
+# OSX
+.DS_Store
