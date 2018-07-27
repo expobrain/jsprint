@@ -1,4 +1,5 @@
 use serde_json;
+use std::collections::BTreeMap;
 use std::env;
 use std::fs::File;
 use std::io::{self, Write};
@@ -14,6 +15,8 @@ pub struct Settings {
     pub team_members: Vec<String>,
     #[serde(default)]
     pub team_labels: Vec<String>,
+    #[serde(default)]
+    pub labels_mapping: BTreeMap<String, String>,
 }
 
 impl Settings {
