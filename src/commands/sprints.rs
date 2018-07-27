@@ -1,12 +1,14 @@
 use colored::*;
+use command::Command;
 use extend_sprints::*;
 use goji::{SearchOptionsBuilder, Sprint};
 use jsprint::JSprint;
+use std::boxed::Box;
 use std::cmp;
 
 const SPRINTS_WINDOW: usize = 2;
 
-pub fn command(jsprint: &mut JSprint, _line: &str) {
+fn exec(jsprint: &mut JSprint, _line: &str) {
     // Get sprints
     let options = SearchOptionsBuilder::new().build();
     let sprints: Sprints = jsprint.get_sprints(&options).unwrap().collect();
@@ -55,5 +57,11 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
             sprint.name,
             id_padding = id_padding
         );
+    }
+}
+
+pub fn get_command() -> Command {
+    Command {
+        exec: Box::new(exec),
     }
 }

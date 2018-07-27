@@ -1,9 +1,10 @@
 use colored::*;
+use command::Command;
 use extend_issue::*;
 use extend_issues::*;
 use jsprint::JSprint;
 
-pub fn command(jsprint: &mut JSprint, _line: &str) {
+fn exec(jsprint: &mut JSprint, _line: &str) {
     // Get current active sprint
     let sprint = jsprint.get_active_sprint().unwrap();
 
@@ -40,5 +41,11 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
                 permalink_padding = permalink_padding,
             );
         }
+    }
+}
+
+pub fn get_command() -> Command {
+    Command {
+        exec: Box::new(exec),
     }
 }

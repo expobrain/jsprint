@@ -9,7 +9,6 @@ extern crate serde_derive;
 
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::boxed::Box;
 
 mod command;
 mod commands;
@@ -36,12 +35,12 @@ fn main() {
     // Register commands
     let mut processor = CommandProcessor::new();
 
-    processor.register_command("sp", Box::new(commands::sprint::command));
-    processor.register_command("sps", Box::new(commands::sprints::command));
-    processor.register_command("rp", Box::new(commands::report::command));
-    processor.register_command("rw", Box::new(commands::reviews::command));
-    processor.register_command("bk", Box::new(commands::backlog::command));
-    processor.register_command("lcount", Box::new(commands::labels_count::command));
+    processor.register_command("sp", commands::sprint::get_command());
+    processor.register_command("sps", commands::sprints::get_command());
+    processor.register_command("rp", commands::report::get_command());
+    processor.register_command("rw", commands::reviews::get_command());
+    processor.register_command("bk", commands::backlog::get_command());
+    processor.register_command("lcount", commands::labels_count::get_command());
 
     // Start shell
     // `()` can be used when no completer is required

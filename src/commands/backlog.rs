@@ -1,3 +1,4 @@
+use command::Command;
 use jsprint::JSprint;
 
 fn get_issue_key_from_number(issue_str: &str) -> Result<String, &'static str> {
@@ -7,7 +8,7 @@ fn get_issue_key_from_number(issue_str: &str) -> Result<String, &'static str> {
     }
 }
 
-pub fn command(jsprint: &mut JSprint, line: &str) {
+fn exec(jsprint: &mut JSprint, line: &str) {
     // Get issue numbers
     let issues = line
         .split_whitespace()
@@ -21,4 +22,10 @@ pub fn command(jsprint: &mut JSprint, line: &str) {
     }
 
     jsprint.jira.backlog().put(issues).unwrap();
+}
+
+pub fn get_command() -> Command {
+    Command {
+        exec: Box::new(exec),
+    }
 }

@@ -1,9 +1,9 @@
-use command::CommandFn;
+use command::Command;
 use jsprint::JSprint;
 use std::collections::BTreeMap;
 
 pub struct CommandProcessor {
-    commands: BTreeMap<String, CommandFn>,
+    commands: BTreeMap<String, Command>,
 }
 
 impl CommandProcessor {
@@ -13,8 +13,8 @@ impl CommandProcessor {
         }
     }
 
-    pub fn register_command(&mut self, cmd: &str, command: CommandFn) {
-        self.commands.insert(cmd.to_string(), command);
+    pub fn register_command(&mut self, cmd_name: &str, command: Command) {
+        self.commands.insert(cmd_name.to_string(), command);
     }
 
     pub fn process(&self, jsprint: &mut JSprint, line: &str) {
@@ -24,9 +24,11 @@ impl CommandProcessor {
             None => {}
             Some("h") | Some("help") => self.help(),
             Some(cmd_name) => if let Some(cmd) = self.commands.get(cmd_name) {
-                cmd(jsprint, line)
+                let f = &cmd.exec;
+
+                f(jsprint, line);
             } else {
-                println!("Unkwon command {}", cmd_name)
+                println!("Unkwon command {}", cmd_name);
             },
         };
     }
