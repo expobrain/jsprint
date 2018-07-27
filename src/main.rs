@@ -56,10 +56,13 @@ fn main() {
         let readline = rl.readline(format!("JSprint [{}] >>> ", current_sprint_name).as_ref());
 
         match readline {
-            Ok(line) => {
-                rl.add_history_entry(line.as_ref());
-                processor.process(&mut jsprint, &line);
-            }
+            Ok(line) => match line.as_str() {
+                "q" | "quit" => break,
+                _ => {
+                    rl.add_history_entry(line.as_ref());
+                    processor.process(&mut jsprint, &line);
+                }
+            },
             Err(ReadlineError::Interrupted) => {
                 break;
             }
