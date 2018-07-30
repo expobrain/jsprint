@@ -5,7 +5,7 @@ use goji::Issue;
 const NO_SUMMARY: &str = "<no summary>";
 const NO_STATUS: &str = "<no status>";
 const REVIEW_LOW_THRESHOLD: i64 = 1;
-const REVIEW_HIGH_THRESHOLD: i64 = 3;
+const REVIEW_HIGH_THRESHOLD: i64 = 2;
 
 pub enum ReviewLevel {
     Low,
