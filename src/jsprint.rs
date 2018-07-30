@@ -44,6 +44,10 @@ impl JSprint {
         self.jira.sprints().iter(&self.board, options).ok()
     }
 
+    pub fn get_sprint(&mut self, sprint_id: u64) -> Option<Sprint> {
+        self.jira.sprints().get(sprint_id).ok()
+    }
+
     pub fn get_active_sprint(&mut self) -> Option<Sprint> {
         let options = SearchOptions::builder().state("active").build();
 

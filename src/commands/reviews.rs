@@ -7,7 +7,7 @@ const REVIEW_PADDING: usize = 6;
 
 pub fn command(jsprint: &mut JSprint, _line: &str) {
     // Get current active sprint
-    let sprint = jsprint.get_active_sprint().unwrap();
+    let sprint = jsprint.current_sprint.clone().unwrap();
 
     println!("On Review in sprint {}", sprint.name);
 

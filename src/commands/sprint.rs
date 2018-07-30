@@ -5,7 +5,7 @@ use jsprint::JSprint;
 
 pub fn command(jsprint: &mut JSprint, _line: &str) {
     // Get current active sprint
-    let sprint = jsprint.get_active_sprint().unwrap();
+    let sprint = jsprint.current_sprint.clone().unwrap();
 
     println!("Displaying sprint {}", sprint.name);
 
