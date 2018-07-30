@@ -27,11 +27,11 @@ impl IssuesPadding for Issues {
         self.iter()
             .map(|i| i.status().map(|s| s.name.len()).unwrap_or(0))
             .max()
-            .unwrap()
+            .unwrap_or(0)
     }
 
     fn key_padding(&self) -> usize {
-        self.iter().map(|i| i.key.len()).max().unwrap()
+        self.iter().map(|i| i.key.len()).max().unwrap_or(0)
     }
 }
 

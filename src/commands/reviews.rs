@@ -12,7 +12,13 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
     println!("On Review in sprint {}", sprint.name);
 
     // Get issues
-    let issues = jsprint.get_issues_on_review(&sprint).unwrap();
+    let issues = jsprint.get_issues_on_review(&sprint);
+
+    if issues.is_empty() {
+        println!("No issues found for sprint {}", sprint.name);
+        return;
+    }
+
     let permalink_padding = issues.permalink_padding(&jsprint.jira);
 
     for (assignee, mut user_issues) in issues.group_by_assignee() {

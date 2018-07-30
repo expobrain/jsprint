@@ -8,7 +8,7 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
     println!("Displaying sprint {}", sprint.name);
 
     // Search for issues
-    let issues = jsprint.get_issues(&sprint).unwrap();
+    let issues = jsprint.get_issues(&sprint);
 
     // Calculate labels count
     let label_count = issues

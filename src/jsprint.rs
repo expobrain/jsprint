@@ -74,7 +74,7 @@ impl JSprint {
         jql
     }
 
-    pub fn get_issues_on_review(&self, sprint: &Sprint) -> Option<Issues> {
+    pub fn get_issues_on_review(&self, sprint: &Sprint) -> Issues {
         // Build filter
         let mut jql_filters = self.jql_filters(&sprint);
         jql_filters.push("(status = \"Resolved\" or status = \"On Review\")".to_string());
@@ -91,9 +91,10 @@ impl JSprint {
             .iter(&self.board, &options)
             .ok()
             .map(|r| r.collect())
+            .unwrap_or_default()
     }
 
-    pub fn get_issues(&self, sprint: &Sprint) -> Option<Issues> {
+    pub fn get_issues(&self, sprint: &Sprint) -> Issues {
         // Build options
         let jql = self.jql_filters(&sprint).join(" AND ");
         let options = SearchOptionsBuilder::new()
@@ -107,5 +108,6 @@ impl JSprint {
             .iter(&self.board, &options)
             .ok()
             .map(|r| r.collect())
+            .unwrap_or_default()
     }
 }

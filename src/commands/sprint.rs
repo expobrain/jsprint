@@ -10,7 +10,12 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
     println!("Displaying sprint {}", sprint.name);
 
     // Search for issues
-    let issues = jsprint.get_issues(&sprint).unwrap();
+    let issues = jsprint.get_issues(&sprint);
+
+    if issues.is_empty() {
+        println!("No issues found for sprint {}", sprint.name);
+        return;
+    }
 
     // Calculate padding
     let key_padding = issues.key_padding();
