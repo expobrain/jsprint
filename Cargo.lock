@@ -191,7 +191,7 @@ dependencies = [
 [[package]]
 name = "goji"
 version = "0.2.4"
-source = "git+https://github.com/expobrain/goji.git?branch=develop#be051f10c4d350b37e58b94ad79b7fe02de357c8"
+source = "git+https://github.com/expobrain/goji.git?branch=develop#bbe38ad758306ef31d1330777558680ae9da4475"
 dependencies = [
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",

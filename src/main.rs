@@ -43,6 +43,7 @@ fn main() {
     processor.register_command("bk", Box::new(commands::backlog::command));
     processor.register_command("lcount", Box::new(commands::labels_count::command));
     processor.register_command("u", Box::new(commands::use_sprint::command));
+    processor.register_command("a", Box::new(commands::add_to_sprint::command));
 
     // Start shell
     // `()` can be used when no completer is required
