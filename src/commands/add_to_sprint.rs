@@ -16,5 +16,5 @@ pub fn command(jsprint: &mut JSprint, line: &str) {
     // Move issues
     let sprint_id = jsprint.current_sprint.clone().unwrap().id;
 
-    let _ = jsprint.jira.sprints().move_issues(sprint_id, args);
+    jsprint.jira.sprints().move_issues(sprint_id, args).unwrap();
 }
