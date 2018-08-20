@@ -8,15 +8,20 @@ pub fn command(jsprint: &mut JSprint, line: &str) {
         println!("Pass only one sprint ID")
     }
 
-    let sprint_id = args[0]
-        .parse::<u64>()
-        .unwrap_or_else(|_| panic!("Sprint ID {} is not a number", &args[0]));
+    // Switch to sprint
+    let sprint = match args.len() {
+        0 => jsprint.get_active_sprint(),
+        _ => {
+            let sprint_id = args[0]
+                .parse::<u64>()
+                .unwrap_or_else(|_| panic!("Sprint ID {} is not a number", &args[0]));
 
-    // Get sprint
-    let sprint = jsprint.get_sprint(sprint_id);
-
-    match sprint {
-        Some(_) => jsprint.current_sprint = sprint,
-        None => println!("No sprint found with ID {}", sprint_id),
+            jsprint
+                .get_sprint(sprint_id)
+                .or_else(|| panic!("No sprint found with ID {}", sprint_id))
+        }
     };
+
+    // Set current sprint
+    jsprint.current_sprint = sprint;
 }
