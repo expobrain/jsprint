@@ -1,5 +1,6 @@
 use std::boxed::Box;
 
-use crate::jsprint::JSprint;
+use jsprint::JSprint;
 
-pub type CommandFn = Box<Fn(&mut JSprint, &str)>;
+pub type CommandFnDef = Fn(&mut JSprint, &str);
+pub type CommandFn = Box<CommandFnDef>;

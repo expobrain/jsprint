@@ -7,11 +7,14 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-use rustyline::error::ReadlineError;
-use rustyline::Editor;
 use std::boxed::Box;
 
+use rustyline::completion::Completer;
+use rustyline::error::ReadlineError;
+use rustyline::{CompletionType, Config, Editor};
+
 mod command;
+mod command_helper;
 mod commands;
 mod commands_processor;
 mod extend_issue;
@@ -20,9 +23,10 @@ mod extend_sprints;
 mod jsprint;
 mod settings;
 
-use crate::commands_processor::CommandProcessor;
-use crate::jsprint::*;
-use crate::settings::*;
+use command_helper::CommandHelper;
+use commands_processor::CommandProcessor;
+use jsprint::*;
+use settings::*;
 
 fn main() {
     // Load settings
@@ -48,7 +52,14 @@ fn main() {
 
     // Start shell
     // `()` can be used when no completer is required
-    let mut rl = Editor::<()>::new();
+    let config = Config::builder()
+        // .history_ignore_space(true)
+        .completion_type(CompletionType::List)
+        .build();
+    let mut rl = Editor::with_config(config);
+
+    let helper = CommandHelper::new(&processor);
+    rl.set_helper(Some(helper));
 
     loop {
         let current_sprint_name = jsprint
@@ -84,3 +95,6 @@ fn main() {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;
