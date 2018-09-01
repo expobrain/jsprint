@@ -64,7 +64,11 @@ fn main() {
                 "q" | "quit" => break,
                 _ => {
                     rl.add_history_entry(line.as_ref());
-                    processor.process(&mut jsprint, &line);
+                    if let Some(command_fn) = processor.get_command(&line) {
+                        command_fn(&mut jsprint, &line);
+                    } else {
+                        println!("Unknown command");
+                    };
                 }
             },
             Err(ReadlineError::Interrupted) => {

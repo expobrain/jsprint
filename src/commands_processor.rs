@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use command::CommandFn;
+
 use crate::command::CommandFn;
 use crate::jsprint::JSprint;
 
@@ -18,7 +20,7 @@ impl CommandProcessor {
         self.commands.insert(cmd.to_string(), command);
     }
 
-    pub fn process(&self, jsprint: &mut JSprint, line: &str) {
+    pub fn get_command(&self, line: &str) -> Option<&CommandFn> {
         let cmd_name = line.split_whitespace().take(1).next();
 
         match cmd_name {
