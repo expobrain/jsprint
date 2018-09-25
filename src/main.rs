@@ -36,15 +36,19 @@ fn main() {
     // Register commands
     let mut processor = CommandProcessor::new();
 
-    processor.register_command("sp", Box::new(commands::sprint::command));
-    processor.register_command("sps", Box::new(commands::sprints::command));
-    processor.register_command("rp", Box::new(commands::report::command));
-    processor.register_command("rw", Box::new(commands::reviews::command));
-    processor.register_command("bk", Box::new(commands::backlog::command));
-    processor.register_command("lcount", Box::new(commands::labels_count::command));
-    processor.register_command("u", Box::new(commands::use_sprint::command));
-    processor.register_command("a", Box::new(commands::add_to_sprint::command));
-    processor.register_command("as", Box::new(commands::assign::command));
+    processor.register_command("sprint", "sp", Box::new(commands::sprint::command));
+    processor.register_command("sprints", "sps", Box::new(commands::sprints::command));
+    processor.register_command("report", "rp", Box::new(commands::report::command));
+    processor.register_command("review", "rw", Box::new(commands::reviews::command));
+    processor.register_command("backlog", "bk", Box::new(commands::backlog::command));
+    processor.register_command(
+        "labelscount",
+        "lcount",
+        Box::new(commands::labels_count::command),
+    );
+    processor.register_command("use", "u", Box::new(commands::use_sprint::command));
+    processor.register_command("add", "a", Box::new(commands::add_to_sprint::command));
+    processor.register_command("assign", "as", Box::new(commands::assign::command));
 
     // Start shell
     // `()` can be used when no completer is required

@@ -14,8 +14,9 @@ impl CommandProcessor {
         }
     }
 
-    pub fn register_command(&mut self, cmd: &str, command: CommandFn) {
-        self.commands.insert(cmd.to_string(), command);
+    pub fn register_command(&mut self, cmd_name: &str, cmd_short: &str, command: CommandFn) {
+        self.commands.insert(cmd_name.into(), command);
+        self.commands.insert(cmd_short.into(), command.clone());
     }
 
     pub fn process(&self, jsprint: &mut JSprint, line: &str) {
