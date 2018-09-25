@@ -38,8 +38,7 @@ impl IssueReviewLevel for Issue {
                 v if v <= REVIEW_LOW_THRESHOLD => ReviewLevel::Low,
                 v if v > REVIEW_LOW_THRESHOLD && v <= REVIEW_HIGH_THRESHOLD => ReviewLevel::Medium,
                 _ => ReviewLevel::High,
-            })
-            .unwrap_or(ReviewLevel::Unknown)
+            }).unwrap_or(ReviewLevel::Unknown)
     }
 }
 
@@ -59,7 +58,6 @@ impl IssueDisplayable for Issue {
                 "On Review" => name.yellow(),
                 "Resolved" | "Closed" | "On Production" | "In Build - Ok" => name.green(),
                 _ => name.normal(),
-            })
-            .unwrap_or_else(|| NO_STATUS.normal())
+            }).unwrap_or_else(|| NO_STATUS.normal())
     }
 }

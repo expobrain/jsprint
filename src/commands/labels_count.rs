@@ -22,8 +22,7 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
                 .get(&label)
                 .unwrap_or(&format!("<{}>", label))
                 .to_owned()
-        })
-        .fold(BTreeMap::new(), |mut acc, label| {
+        }).fold(BTreeMap::new(), |mut acc, label| {
             *acc.entry(label).or_insert(0) += 1;
 
             acc
