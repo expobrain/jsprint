@@ -23,11 +23,13 @@ impl CommandProcessor {
         match cmd_name {
             None => {}
             Some("h") | Some("help") => self.help(),
-            Some(cmd_name) => if let Some(cmd) = self.commands.get(cmd_name) {
-                cmd(jsprint, line)
-            } else {
-                println!("Unkwon command {}", cmd_name)
-            },
+            Some(cmd_name) => {
+                if let Some(cmd) = self.commands.get(cmd_name) {
+                    cmd(jsprint, line)
+                } else {
+                    println!("Unkwon command {}", cmd_name)
+                }
+            }
         };
     }
 

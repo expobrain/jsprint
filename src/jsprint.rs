@@ -23,7 +23,8 @@ impl JSprint {
                 settings.jira_username.clone(),
                 settings.jira_password.clone(),
             ),
-        ).unwrap();
+        )
+        .unwrap();
 
         let board = jira
             .boards()
