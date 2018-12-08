@@ -1,7 +1,8 @@
 use colored::*;
-use extend_issue::*;
-use extend_issues::*;
-use jsprint::JSprint;
+
+use crate::extend_issue::*;
+use crate::extend_issues::*;
+use crate::jsprint::JSprint;
 
 const REVIEW_PADDING: usize = 6;
 

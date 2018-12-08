@@ -20,9 +20,9 @@ mod extend_sprints;
 mod jsprint;
 mod settings;
 
-use commands_processor::CommandProcessor;
-use jsprint::*;
-use settings::*;
+use crate::commands_processor::CommandProcessor;
+use crate::jsprint::*;
+use crate::settings::*;
 
 fn main() {
     // Load settings

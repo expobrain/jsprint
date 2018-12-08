@@ -1,6 +1,7 @@
-use commands::get_issue_key_from_number;
 use goji::Assignee;
-use jsprint::JSprint;
+
+use crate::commands::get_issue_key_from_number;
+use crate::jsprint::JSprint;
 
 pub fn command(jsprint: &mut JSprint, line: &str) {
     // Parse args

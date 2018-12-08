@@ -1,7 +1,8 @@
-use extend_issues::Issues;
 use goji::*;
-use settings::Settings;
 use std::io::{self, Write};
+
+use crate::extend_issues::Issues;
+use crate::settings::Settings;
 
 #[derive(Debug)]
 pub struct JSprint {

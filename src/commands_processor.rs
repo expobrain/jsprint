@@ -1,6 +1,7 @@
-use command::CommandFn;
-use jsprint::JSprint;
 use std::collections::BTreeMap;
+
+use crate::command::CommandFn;
+use crate::jsprint::JSprint;
 
 pub struct CommandProcessor {
     commands: BTreeMap<String, CommandFn>,

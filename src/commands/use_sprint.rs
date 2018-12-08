@@ -1,4 +1,4 @@
-use jsprint::JSprint;
+use crate::jsprint::JSprint;
 
 pub fn command(jsprint: &mut JSprint, line: &str) {
     // Parse arguments

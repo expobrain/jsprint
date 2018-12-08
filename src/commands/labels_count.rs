@@ -1,5 +1,6 @@
-use jsprint::JSprint;
 use std::collections::BTreeMap;
+
+use crate::jsprint::JSprint;
 
 pub fn command(jsprint: &mut JSprint, _line: &str) {
     // Get current active sprint

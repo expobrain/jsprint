@@ -1,8 +1,9 @@
 use colored::*;
-use extend_sprints::*;
 use goji::{SearchOptionsBuilder, Sprint};
-use jsprint::JSprint;
 use std::cmp;
+
+use crate::extend_sprints::*;
+use crate::jsprint::JSprint;
 
 const SPRINTS_WINDOW: usize = 2;
 
