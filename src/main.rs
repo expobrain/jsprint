@@ -63,8 +63,10 @@ fn main() {
             Ok(line) => match line.as_str() {
                 "q" | "quit" => break,
                 _ => {
-                    rl.add_history_entry(line.as_ref());
-                    processor.process(&mut jsprint, &line);
+                    let line_ref: &str = line.as_ref();
+
+                    rl.add_history_entry(line_ref);
+                    processor.process(&mut jsprint, line_ref);
                 }
             },
             Err(ReadlineError::Interrupted) => {
