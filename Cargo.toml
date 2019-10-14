@@ -9,7 +9,7 @@ colored = "1.6"
 serde = "1.0.66"
 serde_derive = "1.0.66"
 serde_json = "1.0.21"
-rustyline = "2.0.0"
+rustyline = "4.0"
 
 [dependencies.goji]
 git = "https://github.com/expobrain/goji.git"
