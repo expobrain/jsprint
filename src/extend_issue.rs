@@ -45,9 +45,7 @@ impl IssueReviewLevel for Issue {
 
 impl IssueDisplayable for Issue {
     fn display_summary(&self) -> String {
-        self.summary()
-            .map(|s| s)
-            .unwrap_or_else(|| NO_SUMMARY.to_string())
+        self.summary().unwrap_or_else(|| NO_SUMMARY.to_string())
     }
 
     fn colored_status(&self) -> ColoredString {

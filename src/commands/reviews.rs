@@ -26,7 +26,7 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
         println!();
         println!("{}", assignee.bold());
 
-        user_issues.sort_unstable_by(|a, b| a.updated().cmp(&b.updated()));
+        user_issues.sort_unstable_by_key(|&a| a.updated());
 
         for issue in user_issues {
             let permalink = issue.permalink(&jsprint.jira);

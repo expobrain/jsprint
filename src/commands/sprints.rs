@@ -30,7 +30,7 @@ pub fn command(jsprint: &mut JSprint, _line: &str) {
         .iter()
         .position(|s| s.state == Some("active".to_owned()));
     let max_index = current_sprints.len();
-    let min_pos = active_pos.map_or(0, |i| i.checked_sub(SPRINTS_WINDOW).unwrap_or(0));
+    let min_pos = active_pos.map_or(0, |i| i.saturating_sub(SPRINTS_WINDOW));
     let max_pos = active_pos
         .map(|i| i.checked_add(SPRINTS_WINDOW).unwrap_or(i))
         .map(|i| cmp::min(i, max_index))
